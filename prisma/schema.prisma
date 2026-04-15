@@ -1,0 +1,85 @@
+// Prisma v7 schema — PostgreSQL (Cloud SQL)
+// ContentType: COURSE_DEVELOPMENT | WORK_STYLE | DIAGNOSIS_DEVELOPMENT | PROJECT_EXPERIENCE | BOOKLET_WEBINAR
+// PostStatus:  DRAFT | REVIEW | FINAL | PUBLISHED
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Post {
+  id               String    @id @default(cuid())
+  title            String
+  topic            String
+  context          String
+  contentType      String    // ContentType (app-level Zod)
+  draft            String?   @db.Text  // AI 생성 원본 초안
+  finalContent     String?   @db.Text  // 사용자 편집 최종본
+  firstComment     String?   @db.Text  // 첫 번째 댓글 내용
+  status           String    @default("DRAFT")
+  scheduledFor     DateTime?
+  characterCount   Int?
+  seriesId         String?
+  seriesOrder      Int?
+  isStyleReference Boolean   @default(false) // ⭐ AI 스타일 참조용 마크
+  styleNotes       String?   @db.Text         // 이 포스팅의 스타일 특이사항
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  tags     PostTag[]
+  cardNews CardNews[]
+  series   Series?   @relation(fields: [seriesId], references: [id])
+}
+
+model Series {
+  id          String   @id @default(cuid())
+  name        String
+  contentType String
+  createdAt   DateTime @default(now())
+
+  posts Post[]
+}
+
+model Tag {
+  id    String    @id @default(cuid())
+  name  String    @unique
+  posts PostTag[]
+}
+
+model PostTag {
+  postId String
+  tagId  String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+}
+
+model CardNews {
+  id         String   @id @default(cuid())
+  postId     String
+  templateId String
+  slideCount Int      @default(6)
+  slides     String   @db.Text  // JSON: SlideContent[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+// 앱 설정 (singleton 패턴)
+model AppSettings {
+  id              String   @id @default("singleton")
+  anthropicApiKey String?  // Anthropic API 키 (Secret Manager fallback 있음)
+  companyName     String   @default("타피루즈그룹")
+  companyTagline  String   @default("HRD 컨설팅 전문 기업")
+  hashtagPresets  String   @default("{}") @db.Text  // JSON: Record<ContentType, string[]>
+  styleProfile    String?  @db.Text  // AI가 학습한 스타일 프로필 텍스트
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
