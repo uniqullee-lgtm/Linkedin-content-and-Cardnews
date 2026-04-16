@@ -100,17 +100,20 @@ Custom skill: `/style-learn` (`.claude/skills/style-learn.md`)
 
 ### AI 모델 선택 (Model Selection)
 
-`src/lib/claude.ts`에서 세 가지 모델 지원:
+`src/lib/claude.ts`에서 네 가지 모델 지원 (태스크별 적합 모델):
 
-| 모델 | ID | 용도 |
-|------|----|----|
-| `sonnet` | `claude-sonnet-4-6` | 기본값 — LinkedIn 포스팅 생성 (콘텐츠 작성 80%) |
-| `haiku` | `claude-haiku-4-5` | 스타일 프로필 분석 등 단순/빠른 태스크 |
-| `opus` | `claude-opus-4-6` | 사용자 명시 선택 시 — 복잡한 추론 필요 시 |
+| 키 | 모델 ID | 용도 |
+|----|---------|------|
+| `haiku` | `claude-haiku-4-5` | 요약·번역·분류·스타일 프로필 생성 등 단순/빠른 작업 (내부 자동 사용) |
+| `sonnet` | `claude-sonnet-4-6` | **기본값** — 코딩·콘텐츠 작성·리팩토링 |
+| `opus-s` | `claude-opus-4-5` | 코드리뷰·경영 분석·장기 에이전트 |
+| `opus` | `claude-opus-4-6` | 아키텍쳐 설계·복잡한 디버깅 등 깊은 추론 전용 |
 
+- 멀티에이전트 파이프라인: Haiku 워커 + Sonnet 매니저 패턴 권장
+- `generateStyleProfile()` → Haiku 고정 (단순 요약 태스크)
+- `streamLinkedInPost()` → 기본 Sonnet, 요청 파라미터로 오버라이드 가능
 - 설정 페이지(`/settings`)에서 기본 모델 선택 → `AppSettings.preferredModel` DB 저장
-- `/api/posts/generate` 요청 시 `model` 파라미터로 오버라이드 가능
-- 우선순위: 요청 파라미터 > DB 설정값 > 기본값('sonnet')
+- 우선순위: 요청 `model` 파라미터 > DB `preferredModel` > 기본값(`sonnet`)
 
 ### PostgreSQL Enum 처리
 

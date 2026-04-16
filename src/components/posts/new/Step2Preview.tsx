@@ -15,9 +15,10 @@ interface Step2PreviewProps {
 }
 
 const MODEL_LABELS: Record<ClaudeModel, { short: string; badge: string; color: string }> = {
-  sonnet: { short: 'Sonnet', badge: '기본', color: 'bg-blue-100 text-blue-700' },
-  opus:   { short: 'Opus',   badge: '고품질', color: 'bg-purple-100 text-purple-700' },
-  haiku:  { short: 'Haiku',  badge: '빠름', color: 'bg-gray-100 text-gray-600' },
+  haiku:   { short: 'Haiku',    badge: '빠름',     color: 'bg-gray-100 text-gray-600' },
+  sonnet:  { short: 'Sonnet',   badge: '기본',     color: 'bg-blue-100 text-blue-700' },
+  'opus-s':{ short: 'Opus 4.5', badge: '분석',     color: 'bg-amber-100 text-amber-700' },
+  opus:    { short: 'Opus 4.6', badge: '추론',     color: 'bg-purple-100 text-purple-700' },
 }
 
 export function Step2Preview({ input, onSave, onBack }: Step2PreviewProps) {
@@ -122,7 +123,7 @@ export function Step2Preview({ input, onSave, onBack }: Step2PreviewProps) {
           <Cpu className="w-3.5 h-3.5" />
           <span>모델:</span>
         </div>
-        {(['sonnet', 'haiku', 'opus'] as ClaudeModel[]).map(m => (
+        {(['haiku', 'sonnet', 'opus-s', 'opus'] as ClaudeModel[]).map(m => (
           <button
             key={m}
             onClick={() => setModel(m)}

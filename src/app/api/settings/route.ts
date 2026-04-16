@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { type ClaudeModel } from '@/lib/claude'
 
-const CLAUDE_MODELS = ['sonnet', 'haiku', 'opus'] as const
+const CLAUDE_MODELS = ['haiku', 'sonnet', 'opus-s', 'opus'] as const
 
 const SettingsSchema = z.object({
   anthropicApiKey: z.string().optional(),

@@ -3,17 +3,19 @@ import type { GeneratePostRequest } from '@/types/post'
 import { CONTENT_TYPE_LABELS, HASHTAG_PRESETS } from './constants'
 
 // ---------------------------------------------------------------------------
-// Model selection
+// Model selection — 태스크별 적합 모델
 // ---------------------------------------------------------------------------
-// Sonnet 4.6 — default for content generation (코딩/콘텐츠 작성 80%)
-// Haiku 4.5  — style profile generation, simple/fast analysis tasks
-// Opus 4.6   — complex reasoning (사용자가 명시적으로 선택할 때만)
-export type ClaudeModel = 'sonnet' | 'haiku' | 'opus'
+// haiku  (claude-haiku-4-5)   — 요약, 번역, 분류, 스타일 프로필 생성 등 단순/빠른 작업
+// sonnet (claude-sonnet-4-6)  — 코딩, 콘텐츠 작성, 리팩토링 [기본값]
+// opus-s (claude-opus-4-5)    — 코드리뷰, 경영 분석, 장기 에이전트 (중간 복잡도)
+// opus   (claude-opus-4-6)    — 아키텍쳐 설계, 복잡한 디버깅 등 깊은 추론 전용
+export type ClaudeModel = 'haiku' | 'sonnet' | 'opus-s' | 'opus'
 
 const MODEL_IDS: Record<ClaudeModel, string> = {
+  haiku:  'claude-haiku-4-5',
   sonnet: 'claude-sonnet-4-6',
-  haiku: 'claude-haiku-4-5',
-  opus: 'claude-opus-4-6',
+  'opus-s': 'claude-opus-4-5',
+  opus:   'claude-opus-4-6',
 }
 
 export function resolveModelId(model: ClaudeModel = 'sonnet'): string {

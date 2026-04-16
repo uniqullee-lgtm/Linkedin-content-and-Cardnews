@@ -13,24 +13,34 @@ interface SettingsData {
   preferredModel: ClaudeModel
 }
 
-const MODEL_OPTIONS: { value: ClaudeModel; label: string; badge: string; description: string }[] = [
+const MODEL_OPTIONS: { value: ClaudeModel; label: string; badge: string; badgeColor: string; description: string }[] = [
   {
     value: 'sonnet',
     label: 'Claude Sonnet 4.6',
     badge: '기본 권장',
-    description: '균형 잡힌 성능 · 콘텐츠 작성 최적화 · 빠른 응답',
-  },
-  {
-    value: 'opus',
-    label: 'Claude Opus 4.6',
-    badge: '복잡한 추론',
-    description: '최고 품질 · 복잡한 전략 콘텐츠 · 비용 높음',
+    badgeColor: 'bg-blue-100 text-blue-700',
+    description: '코딩 · 콘텐츠 작성 · 리팩토링 — 균형 잡힌 기본값',
   },
   {
     value: 'haiku',
     label: 'Claude Haiku 4.5',
-    badge: '빠른 초안',
-    description: '가장 빠름 · 간단한 초안용 · 비용 저렴',
+    badge: '빠름 · 저렴',
+    badgeColor: 'bg-gray-100 text-gray-600',
+    description: '간단한 초안 · 번역 · 분류 · 실시간 응답 — 가장 경제적',
+  },
+  {
+    value: 'opus-s',
+    label: 'Claude Opus 4.5',
+    badge: '분석 · 에이전트',
+    badgeColor: 'bg-amber-100 text-amber-700',
+    description: '코드리뷰 · 경영 분석 · 장기 에이전트 작업',
+  },
+  {
+    value: 'opus',
+    label: 'Claude Opus 4.6',
+    badge: '깊은 추론',
+    badgeColor: 'bg-purple-100 text-purple-700',
+    description: '아키텍쳐 설계 · 복잡한 디버깅 — 최고 품질, 비용 높음',
   },
 ]
 
@@ -205,11 +215,7 @@ export function SettingsForm() {
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-medium text-gray-800">{opt.label}</span>
-                      <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
-                        opt.value === 'sonnet' ? 'bg-blue-100 text-blue-700' :
-                        opt.value === 'opus' ? 'bg-purple-100 text-purple-700' :
-                        'bg-gray-100 text-gray-600'
-                      }`}>{opt.badge}</span>
+                      <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${opt.badgeColor}`}>{opt.badge}</span>
                     </div>
                     <p className="text-xs text-gray-500 mt-0.5">{opt.description}</p>
                   </div>

@@ -12,9 +12,10 @@ import type { PostWithTags } from '@/types/post'
 import type { ClaudeModel } from '@/lib/claude'
 
 const MODEL_CHIPS: { value: ClaudeModel; label: string; color: string }[] = [
-  { value: 'sonnet', label: 'Sonnet', color: 'bg-blue-100 text-blue-700' },
-  { value: 'opus',   label: 'Opus',   color: 'bg-purple-100 text-purple-700' },
-  { value: 'haiku',  label: 'Haiku',  color: 'bg-gray-100 text-gray-600' },
+  { value: 'haiku',   label: 'Haiku',    color: 'bg-gray-100 text-gray-600' },
+  { value: 'sonnet',  label: 'Sonnet',   color: 'bg-blue-100 text-blue-700' },
+  { value: 'opus-s',  label: 'Opus 4.5', color: 'bg-amber-100 text-amber-700' },
+  { value: 'opus',    label: 'Opus 4.6', color: 'bg-purple-100 text-purple-700' },
 ]
 
 const fetcher = (url: string) => fetch(url).then(r => r.json())
