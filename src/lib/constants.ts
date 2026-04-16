@@ -97,8 +97,21 @@ export const LINKEDIN_CHAR_MAX = 1200
 export const LINKEDIN_PREVIEW_CUTOFF = 210 // "더 보기" 버튼 기준
 
 // ─── 슬라이드 수 옵션 ─────────────────────────────────────────────
+// 카드뉴스 제작 가이드 기준:
+//   짧은 원고(≤500자): 5~6장  → 기본값 5장
+//   중간 원고(500~1500자): 7~9장 → 기본값 7장
+//   긴 원고(≥1500자): 10~13장 → 기본값 10장
 export const SLIDE_COUNT_OPTIONS = [
-  { value: 4, label: '4장', description: '간결' },
-  { value: 6, label: '6장', description: '표준', default: true },
-  { value: 8, label: '8장', description: '상세' },
+  { value: 5,  label: '5장',  description: '간결' },
+  { value: 7,  label: '7장',  description: '표준' },
+  { value: 10, label: '10장', description: '상세' },
 ] as const
+
+/**
+ * 포스팅 본문 길이(자수)에 따라 추천 슬라이드 수를 반환합니다.
+ */
+export function recommendSlideCount(contentLength: number): number {
+  if (contentLength <= 500) return 5
+  if (contentLength <= 1500) return 7
+  return 10
+}

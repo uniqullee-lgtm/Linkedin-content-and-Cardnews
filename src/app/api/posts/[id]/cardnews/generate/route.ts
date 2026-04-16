@@ -14,7 +14,7 @@ const SlideSchema = z.object({
 
 const GenerateSchema = z.object({
   templateId: z.string(),
-  slideCount: z.number().int().min(4).max(8),
+  slideCount: z.number().int().min(4).max(15),
   slides: z.array(SlideSchema).optional(),
 })
 
@@ -39,7 +39,7 @@ export async function POST(
 
     const buffer = await generatePptx({
       templateId: data.templateId as Parameters<typeof generatePptx>[0]['templateId'],
-      slideCount: data.slideCount as 4 | 6 | 8,
+      slideCount: data.slideCount,
       slides: data.slides,
       postContent,
       companyName,

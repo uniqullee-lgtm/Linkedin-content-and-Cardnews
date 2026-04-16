@@ -9,7 +9,7 @@ import { SlideEditPanel } from './SlideEditPanel'
 import { DownloadButton } from './DownloadButton'
 import { parsePostToSlides } from '@/lib/pptx/slide-builder'
 import { showToast } from '@/components/shared/Toast'
-import { SLIDE_COUNT_OPTIONS } from '@/lib/constants'
+import { SLIDE_COUNT_OPTIONS, recommendSlideCount } from '@/lib/constants'
 import type { CardTemplateId } from '@/lib/constants'
 import type { PostWithTags } from '@/types/post'
 import type { SlideContent } from '@/types/cardnews'
@@ -26,7 +26,7 @@ export function CardNewsCreator({ postId }: CardNewsCreatorProps) {
   const { data: existingCardNews } = useSWR(`/api/posts/${postId}/cardnews`, fetcher)
 
   const [templateId, setTemplateId] = useState<CardTemplateId>('professional-blue')
-  const [slideCount, setSlideCount] = useState<4 | 6 | 8>(6)
+  const [slideCount, setSlideCount] = useState<number>(7)
   const [slides, setSlides] = useState<SlideContent[]>([])
   const [selectedSlideId, setSelectedSlideId] = useState('')
   const [saving, setSaving] = useState(false)
@@ -47,20 +47,24 @@ export function CardNewsCreator({ postId }: CardNewsCreatorProps) {
     if (existingCardNews && Array.isArray(existingCardNews) && existingCardNews.length > 0) {
       const latest = existingCardNews[0]
       setTemplateId(latest.templateId as CardTemplateId)
-      setSlideCount(latest.slideCount as 4 | 6 | 8)
+      setSlideCount(Number(latest.slideCount))
       setSlides(latest.slides)
       setSelectedSlideId(latest.slides[0]?.id ?? '')
       setCardNewsId(latest.id)
     } else if (postContent) {
-      const parsed = parsePostToSlides(postContent, slideCount)
+      // 포스팅 길이에 따른 자동 추천 슬라이드 수 적용
+      const contentLength = postContent.replace(/#\S+/g, '').trim().length
+      const recommended = recommendSlideCount(contentLength)
+      setSlideCount(recommended)
+      const parsed = parsePostToSlides(postContent, recommended)
       setSlides(parsed)
       setSelectedSlideId(parsed[0]?.id ?? '')
     }
 
     setInitialized(true)
-  }, [post, existingCardNews, initialized]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [post, existingCardNews, initialized])
 
-  const handleSlideCountChange = (count: 4 | 6 | 8) => {
+  const handleSlideCountChange = (count: number) => {
     setSlideCount(count)
     const postContent = post?.finalContent ?? post?.draft ?? ''
     if (postContent) {
@@ -150,26 +154,50 @@ export function CardNewsCreator({ postId }: CardNewsCreatorProps) {
             <TemplateGrid selected={templateId} onSelect={setTemplateId} />
           </div>
           {/* Slide count */}
-          <div className="md:w-48">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">슬라이드 수</h3>
+          <div className="md:w-52">
+            <h3 className="text-sm font-semibold text-gray-700 mb-1">슬라이드 수</h3>
+            {post && (
+              <p className="text-xs text-gray-400 mb-3">
+                포스팅 {(post.finalContent ?? post.draft ?? '').replace(/#\S+/g, '').trim().length}자 기준 추천
+              </p>
+            )}
             <div className="flex flex-col gap-2">
-              {SLIDE_COUNT_OPTIONS.map(opt => (
-                <button
-                  key={opt.value}
-                  onClick={() => handleSlideCountChange(opt.value as 4 | 6 | 8)}
-                  className={cn(
-                    'flex items-center justify-between px-3 py-2.5 rounded-lg border text-sm transition-all',
-                    slideCount === opt.value
-                      ? 'bg-brand-navy text-white border-brand-navy'
-                      : 'bg-white text-gray-700 border-gray-200 hover:border-brand-blue'
-                  )}
-                >
-                  <span className="font-medium">{opt.label}</span>
-                  <span className={cn('text-xs', slideCount === opt.value ? 'text-white/70' : 'text-gray-400')}>
-                    {opt.description}
-                  </span>
-                </button>
-              ))}
+              {(() => {
+                const postContent = post?.finalContent ?? post?.draft ?? ''
+                const contentLength = postContent.replace(/#\S+/g, '').trim().length
+                const recommended = recommendSlideCount(contentLength)
+                return SLIDE_COUNT_OPTIONS.map(opt => {
+                  const isSelected = slideCount === opt.value
+                  const isRecommended = opt.value === recommended
+                  return (
+                    <button
+                      key={opt.value}
+                      onClick={() => handleSlideCountChange(opt.value)}
+                      className={cn(
+                        'flex items-center justify-between px-3 py-2.5 rounded-lg border text-sm transition-all',
+                        isSelected
+                          ? 'bg-brand-navy text-white border-brand-navy'
+                          : 'bg-white text-gray-700 border-gray-200 hover:border-brand-blue'
+                      )}
+                    >
+                      <span className="font-medium">{opt.label}</span>
+                      <div className="flex items-center gap-1.5">
+                        {isRecommended && (
+                          <span className={cn(
+                            'text-xs px-1.5 py-0.5 rounded font-medium',
+                            isSelected ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-600'
+                          )}>
+                            추천
+                          </span>
+                        )}
+                        <span className={cn('text-xs', isSelected ? 'text-white/70' : 'text-gray-400')}>
+                          {opt.description}
+                        </span>
+                      </div>
+                    </button>
+                  )
+                })
+              })()}
             </div>
           </div>
         </div>

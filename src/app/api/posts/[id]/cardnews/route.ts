@@ -13,7 +13,7 @@ const SlideSchema = z.object({
 
 const CreateCardNewsSchema = z.object({
   templateId: z.string(),
-  slideCount: z.number().int().min(4).max(8),
+  slideCount: z.number().int().min(4).max(15),
   slides: z.array(SlideSchema).optional(),
 })
 

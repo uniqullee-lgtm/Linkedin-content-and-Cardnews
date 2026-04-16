@@ -10,7 +10,7 @@ import { applyDarkPremium } from './templates/dark-premium'
 
 export interface GeneratePptxOptions {
   templateId: CardTemplateId
-  slideCount: 4 | 6 | 8
+  slideCount: number
   slides?: SlideContent[]  // 사용자 편집 슬라이드 (없으면 자동 파싱)
   postContent: string
   companyName: string
