@@ -90,7 +90,7 @@ export async function POST(req: Request) {
     return NextResponse.json(post, { status: 201 })
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors }, { status: 400 })
+      return NextResponse.json({ error: error.issues }, { status: 400 })
     }
     console.error('Posts POST error:', error)
     return NextResponse.json({ error: '포스팅 생성에 실패했습니다.' }, { status: 500 })

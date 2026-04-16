@@ -89,7 +89,7 @@ export async function PUT(
     return NextResponse.json(post)
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors }, { status: 400 })
+      return NextResponse.json({ error: error.issues }, { status: 400 })
     }
     console.error('Post PUT error:', error)
     return NextResponse.json({ error: '포스팅 수정에 실패했습니다.' }, { status: 500 })

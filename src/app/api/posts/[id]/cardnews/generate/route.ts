@@ -62,7 +62,8 @@ export async function POST(
 
     const filename = `${post.title.replace(/[^가-힣a-zA-Z0-9]/g, '_').slice(0, 30)}_cardnews.pptx`
 
-    return new Response(buffer, {
+    // Buffer → Uint8Array (BodyInit 호환)
+    return new Response(new Uint8Array(buffer), {
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
         'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`,
@@ -71,7 +72,7 @@ export async function POST(
     })
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors }, { status: 400 })
+      return NextResponse.json({ error: error.issues }, { status: 400 })
     }
     console.error('CardNews generate error:', error)
     return NextResponse.json({ error: 'PPT 생성에 실패했습니다.' }, { status: 500 })
