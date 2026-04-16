@@ -9,7 +9,7 @@ import { SlideEditPanel } from './SlideEditPanel'
 import { DownloadButton } from './DownloadButton'
 import { parsePostToSlides } from '@/lib/pptx/slide-builder'
 import { showToast } from '@/components/shared/Toast'
-import { SLIDE_COUNT_OPTIONS, CARD_TEMPLATES } from '@/lib/constants'
+import { SLIDE_COUNT_OPTIONS } from '@/lib/constants'
 import type { CardTemplateId } from '@/lib/constants'
 import type { PostWithTags } from '@/types/post'
 import type { SlideContent } from '@/types/cardnews'
@@ -103,8 +103,8 @@ export function CardNewsCreator({ postId }: CardNewsCreatorProps) {
     setSlides(prev => {
       const next = prev.map(s => s.id === updated.id ? updated : s)
       // Auto-save after 1.5s
-      clearTimeout((window as Record<string, unknown>).__slideTimer as ReturnType<typeof setTimeout> | undefined)
-      ;(window as Record<string, unknown>).__slideTimer = setTimeout(() => saveSlides(next), 1500)
+      clearTimeout((window as unknown as Record<string, unknown>).__slideTimer as ReturnType<typeof setTimeout> | undefined)
+      ;(window as unknown as Record<string, unknown>).__slideTimer = setTimeout(() => saveSlides(next), 1500)
       return next
     })
   }

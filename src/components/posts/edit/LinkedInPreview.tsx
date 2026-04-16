@@ -1,6 +1,5 @@
 'use client'
 import { useState } from 'react'
-import { cn } from '@/lib/utils'
 import { LINKEDIN_PREVIEW_CUTOFF } from '@/lib/constants'
 import { ThumbsUp, MessageCircle, Share2 } from 'lucide-react'
 
@@ -49,7 +48,7 @@ export function LinkedInPreview({ content, companyName = '타피루즈그룹' }:
             )}
             {!expanded && isTruncatable && (
               <div className="mt-2 py-1 border-t border-dashed border-gray-200">
-                <p className="text-xs text-gray-400 italic">"더 보기" 기준선 (~{LINKEDIN_PREVIEW_CUTOFF}자)</p>
+                <p className="text-xs text-gray-400 italic">&ldquo;더 보기&rdquo; 기준선 (~{LINKEDIN_PREVIEW_CUTOFF}자)</p>
               </div>
             )}
           </>

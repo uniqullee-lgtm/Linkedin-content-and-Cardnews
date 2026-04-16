@@ -2,7 +2,7 @@
 import { CARD_TEMPLATES } from '@/lib/constants'
 import type { CardTemplateId } from '@/lib/constants'
 import type { SlideContent } from '@/types/cardnews'
-import { cn } from '@/lib/utils'
+
 
 interface SlidePreviewProps {
   slide: SlideContent

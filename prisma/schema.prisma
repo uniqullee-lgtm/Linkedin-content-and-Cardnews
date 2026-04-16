@@ -9,7 +9,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model Post {
@@ -80,6 +79,7 @@ model AppSettings {
   companyTagline  String   @default("HRD 컨설팅 전문 기업")
   hashtagPresets  String   @default("{}") @db.Text  // JSON: Record<ContentType, string[]>
   styleProfile    String?  @db.Text  // AI가 학습한 스타일 프로필 텍스트
+  preferredModel  String   @default("sonnet")  // claude model: sonnet | haiku | opus
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }

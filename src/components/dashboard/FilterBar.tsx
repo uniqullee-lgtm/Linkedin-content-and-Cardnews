@@ -1,7 +1,5 @@
 'use client'
-import { useState } from 'react'
 import { Search, X } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { CONTENT_TYPES, CONTENT_TYPE_LABELS, POST_STATUSES, POST_STATUS_LABELS } from '@/lib/constants'
 import type { ContentType, PostStatus } from '@/lib/constants'
 

@@ -34,7 +34,7 @@ export async function GET(
       orderBy: { createdAt: 'desc' },
     })
     return NextResponse.json(
-      cardNews.map(cn => ({
+      cardNews.map((cn: typeof cardNews[number]) => ({
         ...cn,
         slides: JSON.parse(cn.slides),
       }))
@@ -69,7 +69,7 @@ export async function POST(
     )
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors }, { status: 400 })
+      return NextResponse.json({ error: error.issues }, { status: 400 })
     }
     console.error('CardNews POST error:', error)
     return NextResponse.json({ error: '카드뉴스 생성에 실패했습니다.' }, { status: 500 })
@@ -107,7 +107,7 @@ export async function PUT(
     return NextResponse.json({ ...updated, slides: JSON.parse(updated.slides) })
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors }, { status: 400 })
+      return NextResponse.json({ error: error.issues }, { status: 400 })
     }
     console.error('CardNews PUT error:', error)
     return NextResponse.json({ error: '카드뉴스 수정에 실패했습니다.' }, { status: 500 })

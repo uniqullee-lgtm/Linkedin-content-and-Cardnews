@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils'
-import { LINKEDIN_CHAR_MIN, LINKEDIN_CHAR_MAX, LINKEDIN_PREVIEW_CUTOFF } from '@/lib/constants'
+import { LINKEDIN_CHAR_MIN, LINKEDIN_CHAR_MAX } from '@/lib/constants'
 
 interface CharCounterProps {
   count: number

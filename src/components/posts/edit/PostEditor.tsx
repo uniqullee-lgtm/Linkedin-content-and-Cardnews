@@ -9,6 +9,13 @@ import { MetadataPanel } from './MetadataPanel'
 import { showToast } from '@/components/shared/Toast'
 import { cn, countChars } from '@/lib/utils'
 import type { PostWithTags } from '@/types/post'
+import type { ClaudeModel } from '@/lib/claude'
+
+const MODEL_CHIPS: { value: ClaudeModel; label: string; color: string }[] = [
+  { value: 'sonnet', label: 'Sonnet', color: 'bg-blue-100 text-blue-700' },
+  { value: 'opus',   label: 'Opus',   color: 'bg-purple-100 text-purple-700' },
+  { value: 'haiku',  label: 'Haiku',  color: 'bg-gray-100 text-gray-600' },
+]
 
 const fetcher = (url: string) => fetch(url).then(r => r.json())
 
@@ -27,8 +34,13 @@ export function PostEditor({ postId }: PostEditorProps) {
   const [copiedComment, setCopiedComment] = useState(false)
   const [regenerating, setRegenerating] = useState(false)
   const [regenInstructions, setRegenInstructions] = useState('')
+  const [regenModel, setRegenModel] = useState<ClaudeModel>('sonnet')
   const [togglingStyle, setTogglingStyle] = useState(false)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    fetch('/api/settings').then(r => r.json()).then(d => { if (d.preferredModel) setRegenModel(d.preferredModel) }).catch(() => {})
+  }, [])
 
   useEffect(() => {
     if (initial && !post) setPost(initial)
@@ -105,6 +117,7 @@ export function PostEditor({ postId }: PostEditorProps) {
           context: post.context,
           contentType: post.contentType,
           additionalInstructions: regenInstructions,
+          model: regenModel,
         }),
       })
       if (!res.ok) throw new Error('재생성 실패')
@@ -239,14 +252,28 @@ export function PostEditor({ postId }: PostEditorProps) {
             placeholder="수정 지시사항 (예: 더 간결하게, 사례 추가 등)"
             className="w-full text-sm px-3 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue mb-2"
           />
-          <button
-            onClick={regenerate}
-            disabled={regenerating}
-            className="flex items-center gap-1.5 text-sm px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50"
-          >
-            <RefreshCw className={cn('w-3.5 h-3.5', regenerating && 'animate-spin')} />
-            {regenerating ? '재생성 중...' : '재생성'}
-          </button>
+          <div className="flex items-center gap-2 flex-wrap">
+            {MODEL_CHIPS.map(chip => (
+              <button
+                key={chip.value}
+                onClick={() => setRegenModel(chip.value)}
+                className={cn(
+                  'text-xs px-2.5 py-1 rounded-full font-medium transition-colors',
+                  regenModel === chip.value ? chip.color + ' ring-1 ring-current' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                )}
+              >
+                {chip.label}
+              </button>
+            ))}
+            <button
+              onClick={regenerate}
+              disabled={regenerating}
+              className="ml-auto flex items-center gap-1.5 text-sm px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+            >
+              <RefreshCw className={cn('w-3.5 h-3.5', regenerating && 'animate-spin')} />
+              {regenerating ? '재생성 중...' : '재생성'}
+            </button>
+          </div>
         </div>
       </div>
 

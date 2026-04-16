@@ -3,20 +3,43 @@ import { useState, useEffect } from 'react'
 import { Eye, EyeOff, Save, RefreshCw } from 'lucide-react'
 import { showToast } from '@/components/shared/Toast'
 import { CONTENT_TYPES, CONTENT_TYPE_LABELS, HASHTAG_PRESETS } from '@/lib/constants'
-import type { ContentType } from '@/lib/constants'
+import type { ClaudeModel } from '@/lib/claude'
 
 interface SettingsData {
   companyName: string
   hasApiKey: boolean
   hashtagPresets: Record<string, string[]>
   styleProfile?: string
+  preferredModel: ClaudeModel
 }
+
+const MODEL_OPTIONS: { value: ClaudeModel; label: string; badge: string; description: string }[] = [
+  {
+    value: 'sonnet',
+    label: 'Claude Sonnet 4.6',
+    badge: '기본 권장',
+    description: '균형 잡힌 성능 · 콘텐츠 작성 최적화 · 빠른 응답',
+  },
+  {
+    value: 'opus',
+    label: 'Claude Opus 4.6',
+    badge: '복잡한 추론',
+    description: '최고 품질 · 복잡한 전략 콘텐츠 · 비용 높음',
+  },
+  {
+    value: 'haiku',
+    label: 'Claude Haiku 4.5',
+    badge: '빠른 초안',
+    description: '가장 빠름 · 간단한 초안용 · 비용 저렴',
+  },
+]
 
 export function SettingsForm() {
   const [data, setData] = useState<SettingsData>({
     companyName: '타피루즈그룹',
     hasApiKey: false,
     hashtagPresets: {},
+    preferredModel: 'sonnet',
   })
   const [apiKey, setApiKey] = useState('')
   const [showKey, setShowKey] = useState(false)
@@ -29,8 +52,7 @@ export function SettingsForm() {
     fetch('/api/settings')
       .then(r => r.json())
       .then(d => {
-        setData(d)
-        // Merge DB presets with defaults
+        setData({ ...d, preferredModel: d.preferredModel ?? 'sonnet' })
         const merged: Record<string, string[]> = {}
         CONTENT_TYPES.forEach(ct => {
           merged[ct] = d.hashtagPresets?.[ct] ?? HASHTAG_PRESETS[ct]
@@ -46,8 +68,10 @@ export function SettingsForm() {
       const body: Record<string, unknown> = {
         companyName: data.companyName,
         hashtagPresets: localPresets,
+        preferredModel: data.preferredModel,
       }
       if (apiKey) body.anthropicApiKey = apiKey
+      if (data.styleProfile !== undefined) body.styleProfile = data.styleProfile
 
       const res = await fetch('/api/settings', {
         method: 'PUT',
@@ -56,7 +80,7 @@ export function SettingsForm() {
       })
       if (!res.ok) throw new Error('저장 실패')
       const updated = await res.json()
-      setData(updated)
+      setData({ ...updated, preferredModel: updated.preferredModel ?? 'sonnet' })
       setApiKey('')
       showToast('설정이 저장되었습니다.', 'success')
     } catch {
@@ -151,6 +175,51 @@ export function SettingsForm() {
               Anthropic Console에서 발급받은 API 키를 입력하세요. DB에 암호화 저장됩니다.
             </p>
           </div>
+
+          {/* Model selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              기본 AI 모델
+            </label>
+            <div className="space-y-2">
+              {MODEL_OPTIONS.map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setData(d => ({ ...d, preferredModel: opt.value }))}
+                  className={`w-full flex items-start gap-3 p-3 rounded-lg border text-left transition-colors ${
+                    data.preferredModel === opt.value
+                      ? 'border-brand-blue bg-blue-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div className={`mt-0.5 w-4 h-4 rounded-full border-2 flex-shrink-0 ${
+                    data.preferredModel === opt.value
+                      ? 'border-brand-blue bg-brand-blue'
+                      : 'border-gray-300'
+                  }`}>
+                    {data.preferredModel === opt.value && (
+                      <div className="w-full h-full rounded-full scale-50 bg-white" />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-medium text-gray-800">{opt.label}</span>
+                      <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
+                        opt.value === 'sonnet' ? 'bg-blue-100 text-blue-700' :
+                        opt.value === 'opus' ? 'bg-purple-100 text-purple-700' :
+                        'bg-gray-100 text-gray-600'
+                      }`}>{opt.badge}</span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-0.5">{opt.description}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-gray-400 mt-1.5">
+              포스팅 생성 시 사용할 기본 모델입니다. 생성 시점에 변경도 가능합니다.
+            </p>
+          </div>
         </div>
       )}
 
@@ -189,7 +258,7 @@ export function SettingsForm() {
       {/* Style profile */}
       {activeTab === 'style' && (
         <div className="bg-white rounded-xl border border-gray-100 p-5">
-          <div className="flex items-start gap-3 p-3 bg-brand-blue-light rounded-lg mb-4">
+          <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg mb-4">
             <span className="text-lg">🎨</span>
             <div>
               <p className="text-sm font-semibold text-brand-navy">AI 스타일 학습</p>

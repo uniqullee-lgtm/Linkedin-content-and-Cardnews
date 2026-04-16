@@ -98,6 +98,20 @@ Post.isStyleReference = true  →  /api/posts/generate에서 최대 3개 포스�
 
 Custom skill: `/style-learn` (`.claude/skills/style-learn.md`)
 
+### AI 모델 선택 (Model Selection)
+
+`src/lib/claude.ts`에서 세 가지 모델 지원:
+
+| 모델 | ID | 용도 |
+|------|----|----|
+| `sonnet` | `claude-sonnet-4-6` | 기본값 — LinkedIn 포스팅 생성 (콘텐츠 작성 80%) |
+| `haiku` | `claude-haiku-4-5` | 스타일 프로필 분석 등 단순/빠른 태스크 |
+| `opus` | `claude-opus-4-6` | 사용자 명시 선택 시 — 복잡한 추론 필요 시 |
+
+- 설정 페이지(`/settings`)에서 기본 모델 선택 → `AppSettings.preferredModel` DB 저장
+- `/api/posts/generate` 요청 시 `model` 파라미터로 오버라이드 가능
+- 우선순위: 요청 파라미터 > DB 설정값 > 기본값('sonnet')
+
 ### PostgreSQL Enum 처리
 
 PostgreSQL에서도 Prisma enum 사용 가능하지만, 앱 레벨 유연성을 위해 String + Zod 유지:
@@ -167,4 +181,8 @@ URL.revokeObjectURL(url)
 - [2026-04-15] SQLite → PostgreSQL 전환. `@db.Text` 어노테이션 필요 (long text 필드)
 - [2026-04-15] pptxgenjs를 클라이언트 컴포넌트에서 import 시 Buffer 오류 → 서버(API 라우트) 전용
 - [2026-04-15] Dockerfile에서 빌드 시 DATABASE_URL 필요 → 더미값으로 빌드 후 런타임에 실제값 주입
+- [2026-04-16] Prisma v7: `schema.prisma`의 `datasource db`에서 `url` 필드 제거됨 → `prisma.config.ts`에서 관리. PrismaClient 생성 시 `@prisma/adapter-pg`의 `PrismaPg` 어댑터 필수. `prisma.ts`는 `new PrismaPg({ connectionString })` + `new PrismaClient({ adapter })` 패턴 사용
+- [2026-04-16] `next.config.ts` → Next.js 14는 `.ts` 설정 파일 미지원 → `next.config.mjs`로 rename
+- [2026-04-16] `next lint` → ESLint v9 flat config 미지원 → `package.json`의 lint 스크립트를 `eslint src --max-warnings 0`으로 변경, `eslint.config.mjs` 필요
+- [2026-04-16] Prisma v7 생성 파일에 `index.ts` 없음 → `from '../../generated/prisma/client'`로 직접 import
 - [2026-04-15] Next.js standalone 출력은 NODE_ENV=production 시에만 활성화

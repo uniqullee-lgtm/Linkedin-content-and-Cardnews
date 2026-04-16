@@ -1,6 +1,5 @@
 'use client'
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import useSWR from 'swr'
 import { PlusCircle, LayoutList, Calendar } from 'lucide-react'
@@ -18,7 +17,6 @@ import type { PostWithTags } from '@/types/post'
 const fetcher = (url: string) => fetch(url).then(r => r.json())
 
 export default function DashboardPage() {
-  const router = useRouter()
   const [filters, setFilters] = useState<FilterState>({ search: '', contentType: '', status: '' })
   const [view, setView] = useState<'list' | 'calendar'>('list')
 

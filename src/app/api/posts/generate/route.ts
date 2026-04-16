@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { CONTENT_TYPES } from '@/lib/constants'
-import { streamLinkedInPost, type StyleExample } from '@/lib/claude'
+import { streamLinkedInPost, type StyleExample, type ClaudeModel } from '@/lib/claude'
 import { prisma } from '@/lib/prisma'
+
+const CLAUDE_MODELS = ['sonnet', 'haiku', 'opus'] as const
 
 const GenerateSchema = z.object({
   title: z.string().min(1),
@@ -11,6 +13,8 @@ const GenerateSchema = z.object({
   contentType: z.enum(CONTENT_TYPES),
   seriesInfo: z.string().optional(),
   additionalInstructions: z.string().optional(),
+  // 모델 선택: 미지정 시 설정값(preferredModel) 사용, 설정값도 없으면 'sonnet'
+  model: z.enum(CLAUDE_MODELS).optional(),
 })
 
 export async function POST(req: Request) {
@@ -30,6 +34,9 @@ export async function POST(req: Request) {
       )
     }
 
+    // 모델: 요청 파라미터 > 설정값 > 기본값(sonnet)
+    const model: ClaudeModel = input.model ?? (settings?.preferredModel as ClaudeModel | undefined) ?? 'sonnet'
+
     // 스타일 참조 포스팅 최대 3개 가져오기 (같은 contentType 우선)
     const styleRefPosts = await prisma.post.findMany({
       where: {
@@ -37,7 +44,6 @@ export async function POST(req: Request) {
         finalContent: { not: null },
       },
       orderBy: [
-        // 같은 유형 우선, 최신순
         { contentType: 'asc' },
         { updatedAt: 'desc' },
       ],
@@ -64,7 +70,7 @@ export async function POST(req: Request) {
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          for await (const chunk of streamLinkedInPost(input, apiKey, styleExamples, styleProfile)) {
+          for await (const chunk of streamLinkedInPost(input, apiKey, styleExamples, styleProfile, model)) {
             controller.enqueue(encoder.encode(chunk))
           }
           controller.close()
@@ -82,13 +88,13 @@ export async function POST(req: Request) {
         'Transfer-Encoding': 'chunked',
         'Cache-Control': 'no-cache',
         'X-Accel-Buffering': 'no',
-        // 스타일 참조 수를 헤더로 전달 (UI 표시용)
         'X-Style-Refs': String(styleExamples.length),
+        'X-Model': model,
       },
     })
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors }, { status: 400 })
+      return NextResponse.json({ error: error.issues }, { status: 400 })
     }
     console.error('Generate POST error:', error)
     return NextResponse.json({ error: '생성 요청에 실패했습니다.' }, { status: 500 })

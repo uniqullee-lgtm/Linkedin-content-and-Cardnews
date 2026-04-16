@@ -2,6 +2,24 @@ import Anthropic from '@anthropic-ai/sdk'
 import type { GeneratePostRequest } from '@/types/post'
 import { CONTENT_TYPE_LABELS, HASHTAG_PRESETS } from './constants'
 
+// ---------------------------------------------------------------------------
+// Model selection
+// ---------------------------------------------------------------------------
+// Sonnet 4.6 — default for content generation (코딩/콘텐츠 작성 80%)
+// Haiku 4.5  — style profile generation, simple/fast analysis tasks
+// Opus 4.6   — complex reasoning (사용자가 명시적으로 선택할 때만)
+export type ClaudeModel = 'sonnet' | 'haiku' | 'opus'
+
+const MODEL_IDS: Record<ClaudeModel, string> = {
+  sonnet: 'claude-sonnet-4-6',
+  haiku: 'claude-haiku-4-5',
+  opus: 'claude-opus-4-6',
+}
+
+export function resolveModelId(model: ClaudeModel = 'sonnet'): string {
+  return MODEL_IDS[model]
+}
+
 function getApiKey(): string {
   return process.env.ANTHROPIC_API_KEY || ''
 }
@@ -82,6 +100,7 @@ export async function* streamLinkedInPost(
   apiKey?: string,
   styleExamples: StyleExample[] = [],
   styleProfile?: string,
+  model: ClaudeModel = 'sonnet',
 ): AsyncGenerator<string> {
   const key = apiKey || getApiKey()
   if (!key) {
@@ -92,6 +111,7 @@ export async function* streamLinkedInPost(
   const hashtags = HASHTAG_PRESETS[input.contentType].join(' ')
   const contentTypeLabel = CONTENT_TYPE_LABELS[input.contentType]
   const systemPrompt = buildSystemPrompt(styleExamples, styleProfile)
+  const modelId = resolveModelId(model)
 
   const userMessage = `다음 정보를 바탕으로 LinkedIn 포스팅을 작성해주세요.
 
@@ -105,15 +125,14 @@ export async function* streamLinkedInPost(
 위 정보를 참고하여 시스템 프롬프트의 형식과 규칙에 따라 포스팅 본문과 첫 댓글을 작성해주세요.`
 
   const stream = client.messages.stream({
-    model: 'claude-opus-4-6',
+    model: modelId,
     max_tokens: 2000,
     system: [
       {
         type: 'text',
         text: systemPrompt,
-        // @ts-expect-error cache_control supported in API
         cache_control: { type: 'ephemeral' },
-      },
+      } satisfies Anthropic.TextBlockParam,
     ],
     messages: [{ role: 'user', content: userMessage }],
   })
@@ -133,15 +152,16 @@ export async function generateLinkedInPost(
   apiKey?: string,
   styleExamples: StyleExample[] = [],
   styleProfile?: string,
+  model: ClaudeModel = 'sonnet',
 ): Promise<{ content: string; firstComment: string }> {
   let raw = ''
-  for await (const chunk of streamLinkedInPost(input, apiKey, styleExamples, styleProfile)) {
+  for await (const chunk of streamLinkedInPost(input, apiKey, styleExamples, styleProfile, model)) {
     raw += chunk
   }
   return parseGeneratedContent(raw)
 }
 
-/** 스타일 참조 포스팅들로 스타일 프로필 텍스트를 생성합니다 */
+/** 스타일 참조 포스팅들로 스타일 프로필 텍스트를 생성합니다 (Haiku 사용 — 빠르고 저렴) */
 export async function generateStyleProfile(
   examples: StyleExample[],
   apiKey?: string,
@@ -156,7 +176,8 @@ export async function generateStyleProfile(
     .join('\n\n')
 
   const response = await client.messages.create({
-    model: 'claude-opus-4-6',
+    // Haiku: 스타일 분석은 단순 요약 태스크 → 빠르고 저렴
+    model: resolveModelId('haiku'),
     max_tokens: 800,
     messages: [{
       role: 'user',

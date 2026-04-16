@@ -1,7 +1,8 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
-import { RefreshCw, ChevronRight } from 'lucide-react'
+import { RefreshCw, ChevronRight, Cpu } from 'lucide-react'
 import { parseGeneratedContent } from '@/lib/claude'
+import type { ClaudeModel } from '@/lib/claude'
 import { countChars } from '@/lib/utils'
 import { LINKEDIN_CHAR_MIN, LINKEDIN_CHAR_MAX } from '@/lib/constants'
 import type { GeneratePostRequest } from '@/types/post'
@@ -13,6 +14,12 @@ interface Step2PreviewProps {
   onBack: () => void
 }
 
+const MODEL_LABELS: Record<ClaudeModel, { short: string; badge: string; color: string }> = {
+  sonnet: { short: 'Sonnet', badge: '기본', color: 'bg-blue-100 text-blue-700' },
+  opus:   { short: 'Opus',   badge: '고품질', color: 'bg-purple-100 text-purple-700' },
+  haiku:  { short: 'Haiku',  badge: '빠름', color: 'bg-gray-100 text-gray-600' },
+}
+
 export function Step2Preview({ input, onSave, onBack }: Step2PreviewProps) {
   const [streaming, setStreaming] = useState(true)
   const [rawText, setRawText] = useState('')
@@ -20,9 +27,20 @@ export function Step2Preview({ input, onSave, onBack }: Step2PreviewProps) {
   const [firstComment, setFirstComment] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [model, setModel] = useState<ClaudeModel>('sonnet')
+  const [styleRefs, setStyleRefs] = useState(0)
   const abortRef = useRef<AbortController | null>(null)
 
-  const generate = async () => {
+  // Load preferred model from settings
+  useEffect(() => {
+    fetch('/api/settings')
+      .then(r => r.json())
+      .then(d => { if (d.preferredModel) setModel(d.preferredModel) })
+      .catch(() => {})
+  }, [])
+
+  const generate = async (overrideModel?: ClaudeModel) => {
+    const useModel = overrideModel ?? model
     setStreaming(true)
     setRawText('')
     setContent('')
@@ -37,7 +55,7 @@ export function Step2Preview({ input, onSave, onBack }: Step2PreviewProps) {
       const res = await fetch('/api/posts/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(input),
+        body: JSON.stringify({ ...input, model: useModel }),
         signal: ctrl.signal,
       })
 
@@ -45,6 +63,9 @@ export function Step2Preview({ input, onSave, onBack }: Step2PreviewProps) {
         const data = await res.json()
         throw new Error(data.error ?? '생성 실패')
       }
+
+      const refs = parseInt(res.headers.get('X-Style-Refs') ?? '0', 10)
+      setStyleRefs(refs)
 
       const reader = res.body!.getReader()
       const decoder = new TextDecoder()
@@ -87,11 +108,40 @@ export function Step2Preview({ input, onSave, onBack }: Step2PreviewProps) {
     }
   }
 
+  const m = MODEL_LABELS[model]
+
   return (
     <div className="space-y-4">
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">{error}</div>
       )}
+
+      {/* Model selector + info bar */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-1 text-xs text-gray-500">
+          <Cpu className="w-3.5 h-3.5" />
+          <span>모델:</span>
+        </div>
+        {(['sonnet', 'haiku', 'opus'] as ClaudeModel[]).map(m => (
+          <button
+            key={m}
+            onClick={() => setModel(m)}
+            disabled={streaming}
+            className={cn(
+              'text-xs px-2.5 py-1 rounded-full font-medium transition-colors disabled:opacity-50',
+              model === m ? MODEL_LABELS[m].color + ' ring-1 ring-current' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+            )}
+          >
+            {MODEL_LABELS[m].short}
+            {model === m && <span className="ml-1 opacity-70">({MODEL_LABELS[m].badge})</span>}
+          </button>
+        ))}
+        {styleRefs > 0 && (
+          <span className="text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+            ⭐ 스타일 참조 {styleRefs}개 적용
+          </span>
+        )}
+      </div>
 
       {/* Main content */}
       <div>
@@ -134,11 +184,12 @@ export function Step2Preview({ input, onSave, onBack }: Step2PreviewProps) {
           이전
         </button>
         <button
-          onClick={generate}
+          onClick={() => generate()}
           disabled={streaming}
           className="flex items-center gap-1.5 px-4 py-2.5 text-sm text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50"
         >
           <RefreshCw className={cn('w-3.5 h-3.5', streaming && 'animate-spin')} /> 재생성
+          <span className={cn('text-xs px-1.5 py-0.5 rounded-full ml-0.5', m.color)}>{m.short}</span>
         </button>
         <button
           onClick={handleSave}
