@@ -4,6 +4,8 @@ import { CONTENT_TYPES } from '@/lib/constants'
 import { streamLinkedInPost, type StyleExample, type ClaudeModel } from '@/lib/claude'
 import { prisma } from '@/lib/prisma'
 
+export const maxDuration = 60
+
 const CLAUDE_MODELS = ['haiku', 'sonnet', 'opus-s', 'opus'] as const
 
 const GenerateSchema = z.object({
