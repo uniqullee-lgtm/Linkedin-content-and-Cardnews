@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { type ClaudeModel } from '@/lib/claude'
 
+export const dynamic = 'force-dynamic'
+
 const CLAUDE_MODELS = ['haiku', 'sonnet', 'opus-s', 'opus'] as const
 
 const SettingsSchema = z.object({

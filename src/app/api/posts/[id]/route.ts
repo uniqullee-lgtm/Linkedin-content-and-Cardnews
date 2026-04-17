@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { CONTENT_TYPES, POST_STATUSES } from '@/lib/constants'
 
+export const dynamic = 'force-dynamic'
+
 const UpdatePostSchema = z.object({
   title: z.string().min(1).optional(),
   topic: z.string().min(1).optional(),
