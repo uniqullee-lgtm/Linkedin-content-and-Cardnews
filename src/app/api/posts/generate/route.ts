@@ -58,12 +58,14 @@ export async function POST(req: Request) {
     const others = styleRefPosts.filter(p => p.contentType !== input.contentType)
     const selected = [...sameType, ...others].slice(0, 3)
 
-    const styleExamples: StyleExample[] = selected.map(p => ({
-      title: p.title,
-      content: p.finalContent ?? '',
-      contentType: p.contentType,
-      styleNotes: p.styleNotes ?? undefined,
-    }))
+    const styleExamples: StyleExample[] = selected
+      .filter(p => p.finalContent && p.finalContent.trim().length > 0)
+      .map(p => ({
+        title: p.title,
+        content: p.finalContent!,
+        contentType: p.contentType,
+        styleNotes: p.styleNotes ?? undefined,
+      }))
 
     const styleProfile = settings?.styleProfile ?? undefined
 
