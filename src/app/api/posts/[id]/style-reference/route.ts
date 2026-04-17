@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { generateStyleProfile } from '@/lib/claude'
 
+export const dynamic = 'force-dynamic'
+
 /** POST: 스타일 참조 마크 토글 + 프로필 자동 재생성 */
 export async function POST(
   req: Request,
