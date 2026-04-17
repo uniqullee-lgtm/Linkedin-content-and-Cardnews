@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { generatePptx } from '@/lib/pptx/generator'
 
+export const dynamic = 'force-dynamic'
+
 export const maxDuration = 60
 
 const SlideSchema = z.object({
