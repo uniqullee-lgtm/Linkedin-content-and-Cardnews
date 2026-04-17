@@ -76,9 +76,10 @@ function buildSystemPrompt(styleExamples: StyleExample[] = [], customStyleProfil
     prompt += `\n\n## 학습된 스타일 프로필\n${customStyleProfile}`
   }
 
-  if (styleExamples.length > 0) {
+  const validExamples = styleExamples.filter(ex => ex.content.trim().length > 0)
+  if (validExamples.length > 0) {
     prompt += `\n\n## 스타일 참조 포스팅 (이 스타일을 참고하여 작성하세요)\n`
-    styleExamples.forEach((ex, i) => {
+    validExamples.forEach((ex, i) => {
       prompt += `\n### 참조 ${i + 1}: ${ex.title}\n`
       if (ex.styleNotes) prompt += `스타일 특징: ${ex.styleNotes}\n`
       prompt += `\`\`\`\n${ex.content.slice(0, 800)}${ex.content.length > 800 ? '...' : ''}\n\`\`\`\n`
@@ -169,11 +170,12 @@ export async function generateStyleProfile(
   apiKey?: string,
 ): Promise<string> {
   const key = apiKey || getApiKey()
-  if (!key || examples.length === 0) return ''
+  const validExamples = examples.filter(ex => ex.content.trim().length > 0)
+  if (!key || validExamples.length === 0) return ''
 
   const client = new Anthropic({ apiKey: key })
 
-  const exampleTexts = examples
+  const exampleTexts = validExamples
     .map((ex, i) => `### 예시 ${i + 1}: ${ex.title}\n${ex.content.slice(0, 600)}`)
     .join('\n\n')
 

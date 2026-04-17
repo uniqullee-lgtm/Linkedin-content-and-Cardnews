@@ -32,12 +32,14 @@ export async function POST(
       if (apiKey && styleRefPosts.length > 0) {
         try {
           const newProfile = await generateStyleProfile(
-            styleRefPosts.map(p => ({
-              title: p.title,
-              content: p.finalContent ?? '',
-              contentType: p.contentType,
-              styleNotes: p.styleNotes ?? undefined,
-            })),
+            styleRefPosts
+              .filter(p => p.finalContent && p.finalContent.trim().length > 0)
+              .map(p => ({
+                title: p.title,
+                content: p.finalContent!,
+                contentType: p.contentType,
+                styleNotes: p.styleNotes ?? undefined,
+              })),
             apiKey
           )
           await prisma.appSettings.upsert({
