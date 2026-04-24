@@ -1,0 +1,10 @@
+.git
+.next
+node_modules
+prisma/dev.db
+prisma/dev.db-journal
+prisma/migrations
+.env.local
+.env*.local
+*.log
+.DS_Store

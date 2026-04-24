@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"systemMessage\": \"[LinkedIn App] 세션 종료 - 이번 세션에서 발생한 실수나 주의사항을 CLAUDE.md의 알려진 실수 기록 섹션에 기록했는지 확인하세요.\"}'",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
