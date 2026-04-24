@@ -40,7 +40,8 @@ export async function GET(
     return NextResponse.json(post)
   } catch (error) {
     console.error('Post GET error:', error)
-    return NextResponse.json({ error: '포스팅을 불러오지 못했습니다.' }, { status: 500 })
+    const msg = error instanceof Error ? error.message : String(error)
+    return NextResponse.json({ error: '포스팅을 불러오지 못했습니다.', detail: msg }, { status: 500 })
   }
 }
 
@@ -94,7 +95,8 @@ export async function PUT(
       return NextResponse.json({ error: error.issues }, { status: 400 })
     }
     console.error('Post PUT error:', error)
-    return NextResponse.json({ error: '포스팅 수정에 실패했습니다.' }, { status: 500 })
+    const msg = error instanceof Error ? error.message : String(error)
+    return NextResponse.json({ error: '포스팅 수정에 실패했습니다.', detail: msg }, { status: 500 })
   }
 }
 
