@@ -38,7 +38,8 @@ export async function GET() {
     })
   } catch (error) {
     console.error('Settings GET error:', error)
-    return NextResponse.json({ error: '설정을 불러오지 못했습니다.' }, { status: 500 })
+    const msg = error instanceof Error ? error.message : String(error)
+    return NextResponse.json({ error: '설정을 불러오지 못했습니다.', detail: msg }, { status: 500 })
   }
 }
 
@@ -78,6 +79,7 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: error.issues }, { status: 400 })
     }
     console.error('Settings PUT error:', error)
-    return NextResponse.json({ error: '설정 저장에 실패했습니다.' }, { status: 500 })
+    const msg = error instanceof Error ? error.message : String(error)
+    return NextResponse.json({ error: '설정 저장에 실패했습니다.', detail: msg }, { status: 500 })
   }
 }

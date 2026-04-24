@@ -103,6 +103,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: error.issues }, { status: 400 })
     }
     console.error('Generate POST error:', error)
-    return NextResponse.json({ error: '생성 요청에 실패했습니다.' }, { status: 500 })
+    const msg = error instanceof Error ? error.message : String(error)
+    return NextResponse.json({ error: '생성 요청에 실패했습니다.', detail: msg }, { status: 500 })
   }
 }
