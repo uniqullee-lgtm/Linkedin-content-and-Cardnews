@@ -1,3 +1,4 @@
+import { Pool } from 'pg'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '../../generated/prisma/client'
 
@@ -6,7 +7,11 @@ function createPrismaClient() {
   if (!connectionString) {
     throw new Error('DATABASE_URL environment variable is not set')
   }
-  const adapter = new PrismaPg({ connectionString })
+  const pool = new Pool({
+    connectionString,
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  })
+  const adapter = new PrismaPg(pool)
   return new PrismaClient({
     adapter,
     log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
