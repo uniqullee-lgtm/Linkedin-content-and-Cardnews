@@ -14,7 +14,10 @@ import { ToastContainer, showToast } from '@/components/shared/Toast'
 import { cn } from '@/lib/utils'
 import type { PostWithTags } from '@/types/post'
 
-const fetcher = (url: string) => fetch(url).then(r => r.json())
+const fetcher = (url: string) => fetch(url).then(async r => {
+  if (!r.ok) throw new Error(await r.text())
+  return r.json()
+})
 
 export default function DashboardPage() {
   const [filters, setFilters] = useState<FilterState>({ search: '', contentType: '', status: '' })
@@ -25,7 +28,7 @@ export default function DashboardPage() {
   if (filters.contentType) params.set('contentType', filters.contentType)
   if (filters.status) params.set('status', filters.status)
 
-  const { data: posts = [], mutate } = useSWR<PostWithTags[]>(
+  const { data: posts = [], error: postsError, mutate } = useSWR<PostWithTags[]>(
     `/api/posts?${params.toString()}`,
     fetcher,
     { refreshInterval: 30000 }
@@ -72,6 +75,12 @@ export default function DashboardPage() {
             </button>
           </div>
         </div>
+
+        {postsError && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4 text-sm text-red-700">
+            데이터를 불러오지 못했습니다. 설정 페이지에서 데이터베이스 연결을 확인해주세요.
+          </div>
+        )}
 
         {view === 'list' && (
           <>

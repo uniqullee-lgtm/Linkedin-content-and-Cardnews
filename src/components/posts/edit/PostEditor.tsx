@@ -18,7 +18,10 @@ const MODEL_CHIPS: { value: ClaudeModel; label: string; color: string }[] = [
   { value: 'opus',    label: 'Opus 4.6', color: 'bg-purple-100 text-purple-700' },
 ]
 
-const fetcher = (url: string) => fetch(url).then(r => r.json())
+const fetcher = (url: string) => fetch(url).then(async r => {
+  if (!r.ok) throw new Error(await r.text())
+  return r.json()
+})
 
 interface PostEditorProps {
   postId: string

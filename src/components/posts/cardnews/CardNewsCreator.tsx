@@ -15,7 +15,10 @@ import type { PostWithTags } from '@/types/post'
 import type { SlideContent } from '@/types/cardnews'
 import { cn } from '@/lib/utils'
 
-const fetcher = (url: string) => fetch(url).then(r => r.json())
+const fetcher = (url: string) => fetch(url).then(async r => {
+  if (!r.ok) throw new Error(await r.text())
+  return r.json()
+})
 
 interface CardNewsCreatorProps {
   postId: string
