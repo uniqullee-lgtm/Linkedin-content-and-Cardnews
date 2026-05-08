@@ -17,8 +17,12 @@ async function run(client: PoolClient, label: string, sql: string, log: string[]
 
 export async function GET() {
   const connectionString = process.env.DATABASE_URL
+  const dbUrlHint = connectionString
+    ? connectionString.replace(/:([^:@]+)@/, ':***@').slice(0, 80) + '...'
+    : null
+
   if (!connectionString) {
-    return NextResponse.json({ error: 'DATABASE_URL not set' }, { status: 500 })
+    return NextResponse.json({ error: 'DATABASE_URL not set', dbUrlHint: null }, { status: 500 })
   }
 
   const pool = new Pool({
@@ -139,7 +143,11 @@ export async function GET() {
       let writeOk = false
       try {
         await client.query('BEGIN')
-        await client.query(`INSERT INTO "AppSettings" (id, "updatedAt") VALUES ('setup-test', NOW()) ON CONFLICT (id) DO UPDATE SET "updatedAt" = NOW()`)
+        await client.query(`
+          INSERT INTO "AppSettings" (id, "companyName", "hashtagPresets", "preferredModel", "createdAt", "updatedAt")
+          VALUES ('setup-test', '타피루즈그룹', '{}', 'sonnet', NOW(), NOW())
+          ON CONFLICT (id) DO UPDATE SET "updatedAt" = NOW()
+        `)
         await client.query('ROLLBACK')
         writeOk = true
         log.push('✓ Write test (ROLLBACK)')
@@ -148,7 +156,7 @@ export async function GET() {
         log.push(`✗ Write test: ${e instanceof Error ? e.message : String(e)}`)
       }
 
-      return NextResponse.json({ ok: allTablesExist && writeOk, tables, allTablesExist, writeOk, log })
+      return NextResponse.json({ ok: allTablesExist && writeOk, tables, allTablesExist, writeOk, dbUrlHint, log })
     } finally {
       client.release()
     }
@@ -156,6 +164,7 @@ export async function GET() {
     return NextResponse.json({
       ok: false,
       error: e instanceof Error ? e.message : String(e),
+      dbUrlHint,
       log,
     }, { status: 500 })
   } finally {
