@@ -180,17 +180,11 @@ export async function generateStyleProfile(
     .join('\n\n')
 
   const response = await client.messages.create({
-    // Haiku: 스타일 분석은 단순 요약 태스크 → 빠르고 저렴
     model: resolveModelId('haiku'),
     max_tokens: 800,
     messages: [{
       role: 'user',
-      content: `다음 LinkedIn 포스팅들을 분석하여 공통된 글쓰기 스타일 프로필을 200자 이내로 요약해주세요.
-문체, 어조, 구조, 특징적인 표현 방식을 중심으로 작성해주세요.
-
-${exampleTexts}
-
-스타일 프로필 (한국어, 200자 이내):`,
+      content: `다음 LinkedIn 포스팅들을 분석하여 공통된 글쓰기 스타일 프로필을 200자 이내로 요약해주세요.\n문체, 어조, 구조, 특징적인 표현 방식을 중심으로 작성해주세요.\n\n${exampleTexts}\n\n스타일 프로필 (한국어, 200자 이내):`,
     }],
   })
 

@@ -19,7 +19,6 @@ export async function POST(
       data: { isStyleReference, styleNotes: styleNotes ?? null },
     })
 
-    // 스타일 참조 포스팅이 추가/변경됐으면 프로필 자동 재생성
     if (isStyleReference) {
       const styleRefPosts = await prisma.post.findMany({
         where: { isStyleReference: true, finalContent: { not: null } },

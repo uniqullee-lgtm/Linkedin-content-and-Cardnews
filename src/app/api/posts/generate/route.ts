@@ -17,7 +17,6 @@ const GenerateSchema = z.object({
   contentType: z.enum(CONTENT_TYPES),
   seriesInfo: z.string().optional(),
   additionalInstructions: z.string().optional(),
-  // 모델 선택: 미지정 시 설정값(preferredModel) 사용, 설정값도 없으면 'sonnet'
   model: z.enum(CLAUDE_MODELS).optional(),
 })
 
@@ -26,7 +25,6 @@ export async function POST(req: Request) {
     const body = await req.json()
     const input = GenerateSchema.parse(body)
 
-    // API 키: 환경변수 → DB 저장값 순서로 fallback
     let apiKey = process.env.ANTHROPIC_API_KEY || ''
     const settings = await prisma.appSettings.findUnique({ where: { id: 'singleton' } })
     if (!apiKey) apiKey = settings?.anthropicApiKey ?? ''
@@ -38,10 +36,8 @@ export async function POST(req: Request) {
       )
     }
 
-    // 모델: 요청 파라미터 > 설정값 > 기본값(sonnet)
     const model: ClaudeModel = input.model ?? (settings?.preferredModel as ClaudeModel | undefined) ?? 'sonnet'
 
-    // 스타일 참조 포스팅 최대 3개 가져오기 (같은 contentType 우선)
     const styleRefPosts = await prisma.post.findMany({
       where: {
         isStyleReference: true,
@@ -55,7 +51,6 @@ export async function POST(req: Request) {
       select: { title: true, finalContent: true, contentType: true, styleNotes: true },
     })
 
-    // 같은 contentType 우선 정렬 후 최대 3개
     const sameType = styleRefPosts.filter(p => p.contentType === input.contentType)
     const others = styleRefPosts.filter(p => p.contentType !== input.contentType)
     const selected = [...sameType, ...others].slice(0, 3)
@@ -71,7 +66,6 @@ export async function POST(req: Request) {
 
     const styleProfile = settings?.styleProfile ?? undefined
 
-    // Streaming response
     const encoder = new TextEncoder()
     const stream = new ReadableStream({
       async start(controller) {
