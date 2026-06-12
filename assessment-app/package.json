@@ -1,0 +1,41 @@
+{
+  "name": "taphyruz-assessment",
+  "version": "0.1.0",
+  "description": "타피루즈그룹 진단 플랫폼 — 동기·성격·강점·드레일먼트 진단",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3100",
+    "build": "prisma generate && next build",
+    "start": "next start -p 3100",
+    "lint": "eslint src --max-warnings 0",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:studio": "prisma studio"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.7.0",
+    "@prisma/client": "^7.7.0",
+    "@tailwindcss/postcss": "^4.2.2",
+    "@types/pg": "^8.20.0",
+    "dotenv": "^17.4.2",
+    "next": "^14.2.35",
+    "pg": "^8.20.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.2.3",
+    "postcss": "^8.5.9",
+    "prisma": "^7.7.0",
+    "tailwindcss": "^4.2.2",
+    "tsx": "^4.20.0",
+    "typescript": "^6.0.2"
+  }
+}

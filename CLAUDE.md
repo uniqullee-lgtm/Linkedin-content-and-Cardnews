@@ -178,6 +178,14 @@ URL.revokeObjectURL(url)
 | 스타일 참조 API | `src/app/api/posts/[id]/style-reference/route.ts` |
 | Custom skill | `.claude/skills/style-learn.md` |
 
+## 서브 프로젝트: 진단 플랫폼 (`assessment-app/`)
+
+타피루즈 진단센터 — 동기·성격·강점·드레일먼트 진단 웹앱. 자체 `package.json`을 가진 **독립 Next.js 앱**으로, 별도 저장소 분리 가능. 상세는 `assessment-app/README.md` 참조.
+
+- 개발 서버 포트 3100, 로컬 DB 포트 5433 (LinkedIn 앱과 충돌 방지)
+- 진단 엔진은 데이터 기반: 새 진단 추가 = `prisma/seed.ts` 콘텐츠 입력
+- Prisma v7 패턴(adapter-pg, prisma.config.ts)은 본 프로젝트와 동일
+
 ## 알려진 실수 기록
 
 <!-- Claude가 작업 중 발견한 실수/주의사항을 여기에 기록 -->
