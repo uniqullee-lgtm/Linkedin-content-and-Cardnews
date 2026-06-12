@@ -1,0 +1,17 @@
+# 진단 플랫폼 로컬 개발용 PostgreSQL (LinkedIn 앱의 5432와 충돌 방지를 위해 5433 사용)
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: assessment-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: assessment
+      POSTGRES_PASSWORD: assessment
+      POSTGRES_DB: assessment
+    ports:
+      - "5433:5432"
+    volumes:
+      - assessment-db-data:/var/lib/postgresql/data
+
+volumes:
+  assessment-db-data:

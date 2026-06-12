@@ -1,0 +1,105 @@
+// Prisma v7 schema — 진단 플랫폼 (PostgreSQL)
+//
+// 설계 원칙: "진단 엔진" 하나 위에 모든 진단을 데이터로 얹는다.
+// 새 진단 추가 = Assessment + Dimension + Question + InterpretationBand 데이터 입력.
+//
+// 앱 레벨 문자열 enum (Zod 검증, src/lib/constants.ts):
+//   AssessmentType: SELF | MULTI_RATER
+//   Band:           LOW | MID | HIGH
+//   RaterRole:      SELF | MANAGER | PEER | REPORT  (다면진단 Phase 3에서 사용)
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// 진단 정의 (예: 동기·성격·강점·드레일먼트 통합 진단)
+model Assessment {
+  id          String   @id @default(cuid())
+  slug        String   @unique // URL: /a/[slug]
+  title       String
+  subtitle    String?
+  description String   @db.Text
+  type        String   @default("SELF") // AssessmentType
+  scaleMin    Int      @default(1)
+  scaleMax    Int      @default(5)
+  scaleLabels Json? // 척도 라벨 배열 예: ["전혀 그렇지 않다", ..., "매우 그렇다"]
+  durationMin Int      @default(10) // 예상 소요 시간(분)
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  dimensions Dimension[]
+  questions  Question[]
+  responses  Response[]
+}
+
+// 측정 차원 (예: 성취동기, 외향성, 실행력, 과신 위험)
+model Dimension {
+  id           String  @id @default(cuid())
+  assessmentId String
+  key          String // 코드 키 (예: ACHIEVEMENT)
+  group        String // 결과 페이지 섹션 (예: 동기, 성격, 강점, 드레일먼트)
+  name         String
+  description  String  @db.Text
+  isRisk       Boolean @default(false) // true = 점수가 높을수록 위험 (드레일먼트)
+  sortOrder    Int     @default(0)
+
+  assessment Assessment           @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  questions  Question[]
+  bands      InterpretationBand[]
+
+  @@unique([assessmentId, key])
+}
+
+// 문항 (리커트 척도)
+model Question {
+  id           String  @id @default(cuid())
+  assessmentId String
+  dimensionId  String
+  text         String  @db.Text
+  isReversed   Boolean @default(false) // 역채점 문항
+  sortOrder    Int     @default(0)
+
+  assessment Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  dimension  Dimension  @relation(fields: [dimensionId], references: [id], onDelete: Cascade)
+}
+
+// 차원별 점수 구간 해설 (무료 summary / 유료 detail)
+model InterpretationBand {
+  id          String  @id @default(cuid())
+  dimensionId String
+  band        String // Band: LOW | MID | HIGH
+  minScore    Float // 구간 [minScore, maxScore]
+  maxScore    Float
+  label       String // 결과 화면 뱃지 (예: "두드러진 강점", "주의 신호")
+  summary     String  @db.Text // 무료 해설
+  detail      String? @db.Text // 유료 PDF 상세 해설 (Phase 2)
+
+  dimension Dimension @relation(fields: [dimensionId], references: [id], onDelete: Cascade)
+
+  @@unique([dimensionId, band])
+}
+
+// 응답 + 계산된 결과
+model Response {
+  id              String   @id @default(cuid())
+  token           String   @unique @default(cuid()) // 결과 페이지 접근 토큰 (/r/[token])
+  assessmentId    String
+  respondentName  String?
+  respondentEmail String?
+  raterRole       String   @default("SELF") // RaterRole — 다면진단 대비
+  answers         Json // { [questionId]: 1..5 } 로우데이터 (엑셀 export 원본)
+  scores          Json // [{ dimensionKey, group, name, score, band, isRisk }]
+  consentedAt     DateTime // 개인정보 수집·이용 동의 시각
+  createdAt       DateTime @default(now())
+
+  assessment Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  @@index([assessmentId, createdAt])
+}
